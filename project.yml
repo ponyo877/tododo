@@ -33,4 +33,4 @@ schemes:
       targets:
         MyTodo: all
     run:
-      config: Debug
+      config: Release

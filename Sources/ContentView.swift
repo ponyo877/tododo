@@ -28,6 +28,7 @@ struct ContentView: View {
         .listStyle(.plain)
         .scrollDismissesKeyboard(.immediately)
         .safeAreaInset(edge: .bottom) { addBar }
+        .task { adding = true }  // 起動直後から入力できるようにする
         .onChange(of: adding) { _, focused in
             if !focused { target = .today }
         }
