@@ -2,3 +2,4 @@ MyTodo.xcodeproj/
 Sources/Info.plist
 build/
 .DS_Store
+AppStore/
