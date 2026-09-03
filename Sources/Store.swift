@@ -20,6 +20,19 @@ struct Todo: Identifiable, Codable, Equatable {
     var done = false
 }
 
+// 見出しとタスクを1列に並べた表示行。ドラッグで見出しを跨ぐとタスクの区分が変わる
+enum Row: Identifiable {
+    case header(Bucket)
+    case todo(Todo)
+
+    var id: String {
+        switch self {
+        case .header(let bucket): "header.\(bucket.rawValue)"
+        case .todo(let todo): todo.id.uuidString
+        }
+    }
+}
+
 @MainActor @Observable
 final class Store {
     var todos: [Todo]
@@ -37,6 +50,10 @@ final class Store {
         todos.filter { $0.bucket == bucket }
     }
 
+    var rows: [Row] {
+        Bucket.allCases.flatMap { bucket in [Row.header(bucket)] + items(in: bucket).map(Row.todo) }
+    }
+
     func add(_ text: String, to bucket: Bucket) {
         todos.insert(Todo(text: text, bucket: bucket), at: insertionIndex(in: bucket, done: false))
         save()
@@ -52,11 +69,7 @@ final class Store {
 
     func rename(_ id: UUID, to text: String) {
         guard let i = todos.firstIndex(where: { $0.id == id }) else { return }
-        if text.isEmpty {
-            todos.remove(at: i)
-        } else {
-            todos[i].text = text
-        }
+        todos[i].text = text
         save()
     }
 
@@ -65,21 +78,34 @@ final class Store {
         save()
     }
 
-    func drop(_ id: UUID, into bucket: Bucket, at offset: Int) {
-        guard let i = todos.firstIndex(where: { $0.id == id }) else { return }
-        var offset = offset
-        if todos[i].bucket == bucket,
-           let current = items(in: bucket).firstIndex(where: { $0.id == id }),
-           current < offset {
-            offset -= 1
+    // 表示行の並べ替え。移動後の位置から区分を決め直す（直前の見出しがその行の区分）
+    func move(from source: IndexSet, to destination: Int) {
+        var rows = rows
+        rows.move(fromOffsets: source, toOffset: destination)
+        var bucket = Bucket.today
+        var moved: [Todo] = []
+        for row in rows {
+            switch row {
+            case .header(let b):
+                bucket = b
+            case .todo(var todo):
+                todo.bucket = bucket
+                moved.append(todo)
+            }
         }
-        var todo = todos.remove(at: i)
-        todo.bucket = bucket
-        let group = items(in: bucket)
-        let at = offset < group.count
-            ? todos.firstIndex { $0.id == group[offset].id }!
-            : todos.lastIndex { $0.bucket == bucket }.map { $0 + 1 } ?? todos.endIndex
-        todos.insert(todo, at: at)
+        todos = moved
+        save()
+    }
+
+    // 区分内の未完了タスクを指定IDの順に並べ替える（完了行は動かさない）
+    func reorder(_ bucket: Bucket, to orderedIDs: [UUID]) {
+        let slots = todos.indices.filter { todos[$0].bucket == bucket && !todos[$0].done }
+        let byID = Dictionary(uniqueKeysWithValues: slots.map { (todos[$0].id, todos[$0]) })
+        let ordered = orderedIDs.compactMap { byID[$0] }
+        guard ordered.count == slots.count else { return }
+        for (slot, todo) in zip(slots, ordered) {
+            todos[slot] = todo
+        }
         save()
     }
 
