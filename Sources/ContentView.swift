@@ -40,6 +40,17 @@ struct ContentView: View {
         .environment(\.defaultMinListRowHeight, 44)
         .environment(\.editMode, .constant(.active))  // 常時グリップ表示＝長押し不要で即並べ替え
         .scrollDismissesKeyboard(.immediately)
+        .overlay {
+            if store.todos.isEmpty {  // 空のときだけ、線画のドードーが静かに待っている（テンプレート描画でダークモードは白線）
+                Image("DodoOutline")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 260)
+                    .foregroundStyle(.primary)
+                    .opacity(0.25)
+                    .allowsHitTesting(false)
+            }
+        }
         .safeAreaInset(edge: .bottom) { addBar }
         .task {
             canSort = Sorter.isAvailable  // 初回フレーム後に判定して起動パスを汚さない
@@ -111,18 +122,24 @@ struct ContentView: View {
     }
 
     private var addBar: some View {
-        InputField(
-            text: $input,
-            isFocused: $adding,
-            placeholder: target == .today ? "やること..." : "\(target.label)に追加...",
-            onSubmit: submit
-        )
+        HStack(spacing: 12) {
+            Image("Dodo")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 30)
+            InputField(
+                text: $input,
+                isFocused: $adding,
+                placeholder: target == .today ? "やること..." : "\(target.label)に追加...",
+                onSubmit: submit
+            )
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
             .background(Capsule().fill(Color(.systemGray6)))
-            .padding(.horizontal)
-            .padding(.vertical, 6)
-            .background(.bar)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 6)
+        .background(.bar)
     }
 
     private func submit() {
