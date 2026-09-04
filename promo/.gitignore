@@ -1,0 +1,10 @@
+node_modules/
+captures/
+public/captures/
+public/fonts/
+public/brand/
+public/audio/*
+!public/audio/.gitkeep
+out/
+*.mov
+*.mp4

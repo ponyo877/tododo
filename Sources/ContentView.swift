@@ -83,6 +83,7 @@ struct ContentView: View {
                             .foregroundStyle(Color(.systemGray2))
                     }
                     .buttonStyle(.plain)
+                    .accessibilityIdentifier("sort")
                 }
             }
             Button {
@@ -94,6 +95,7 @@ struct ContentView: View {
                     .foregroundStyle(Color(.systemGray2))
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("add.\(bucket.rawValue)")
         }
     }
 

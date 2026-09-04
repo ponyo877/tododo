@@ -29,10 +29,24 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false
+  MyTodoUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [promo/capture/uitest]
+    dependencies:
+      - target: MyTodo
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: MyTodo
 schemes:
   MyTodo:
     build:
       targets:
         MyTodo: all
+        MyTodoUITests: [test]
     run:
       config: Release
+    test:
+      config: Release
+      targets: [MyTodoUITests]
