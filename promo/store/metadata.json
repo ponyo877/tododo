@@ -1,0 +1,19 @@
+{
+  "bundleId": "com.ponyo877.MyTodo",
+  "version": "1.0",
+  "locale": "ja",
+  "name": "tododo",
+  "subtitle": "今日・明日・いつかだけの最速Todo",
+  "privacyPolicyUrl": "https://ponyo877.github.io/todo-privacy/",
+  "supportUrl": "https://ponyo877.github.io/todo-privacy/#support",
+  "primaryCategory": "PRODUCTIVITY",
+  "promotionalText": "起動した瞬間に入力できる、いちばん速いTodo。日付が変わると明日の予定が今日に繰り越され、済んだことは静かに消えます。",
+  "keywords": "todo,タスク,やること,今日,明日,シンプル,ミニマル,オフライン,AI,並べ替え,予定,メモ",
+  "whatsNew": "最初のリリース。",
+  "description": "今日・明日・いつか。区分はこの3つだけ。\n\n開いた瞬間にキーボードが出て、Returnを押すだけでタスクが積まれていきます。設定も、リストも、通知もありません。\n\n■ 日付が世界を回す\n日付が変わると「明日」のタスクは「今日」へ移り、完了したタスクは消えます。やり残した「今日」はそのまま今日に残ります。朝アプリを開けば、その日のリストが出来上がっています。\n\n■ 並び順が実行順\n行を持ち上げてそのまま並べ替え。見出しを越えれば区分が変わります。並び順はあなたがタスクをこなす順番そのものです。\n\n■ ✨ オンデバイスAIが実行順を提案\nApple Intelligence対応端末では、今日のタスクを実行しやすい順に並べ替えられます。提案を手直しすると、その並びをお手本として端末内で学習し、次回はあなたの順序癖に寄っていきます。タスクの内容が端末の外に出ることは一切ありません。\n\n■ 操作\n・右スワイプで完了（取り消し線）、×で削除\n・行を持ち上げてドラッグで並べ替え・区分移動\n・文字をタップして入力欄で編集\n・引っ張る／余白タップでキーボードを閉じる\n\n■ 質素であること\nアカウント登録なし、通信なし、広告なし、トラッキングなし。データはすべて端末の中だけ。アプリは1MB以下です。\n\nアイコンとマスコットのドードーは OpenMoji（CC BY-SA 4.0）を使用しています。",
+  "reviewNotes": "This app is a minimal personal to-do list with exactly three buckets: Today, Tomorrow, Someday. It has no account, no network access, no ads, and no tracking. All data stays on the device.\n\nDistinctive behaviors:\n1. Day rollover: when the calendar date changes, Tomorrow tasks move to Today and completed tasks are removed automatically.\n2. The visual order IS the execution order. Rows can be dragged across section headers to change bucket.\n3. The sparkle button (visible only on Apple Intelligence-capable devices with Apple Intelligence enabled) sorts today's tasks into an execution order using the on-device Foundation Models framework, and learns from the user's manual rearrangements on-device. No task text ever leaves the device.\n\nIf the review device does not have Apple Intelligence enabled, the sparkle button is intentionally hidden and all other features work normally. No login or demo account is needed.",
+  "reviewContact": { "firstName": "Keisuke", "lastName": "Hidaka", "email": "877ponyo@gmail.com", "phone": "" },
+  "screenshots": ["../AppStore/screenshots/01-light.png", "../AppStore/screenshots/02-dark.png"],
+  "screenshotDisplayType": "APP_IPHONE_67",
+  "preview": { "file": "out/deliver/tododo-appstore-preview-886x1920.mp4", "type": "IPHONE_67", "poster": "00:00:24:12" }
+}
