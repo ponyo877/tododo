@@ -23,7 +23,7 @@ console.log(`version ${version.attributes.versionString} (${version.attributes.a
 // 2) バージョンのローカリゼーション（説明・キーワード・URL など）
 const vlocs = await api('GET', `/appStoreVersions/${version.id}/appStoreVersionLocalizations`);
 let vloc = vlocs.data.find((l) => l.attributes.locale === M.locale);
-const vattrs = { description: M.description, keywords: M.keywords, promotionalText: M.promotionalText, supportUrl: M.supportUrl, whatsNew: M.whatsNew };
+const vattrs = { description: M.description, keywords: M.keywords, promotionalText: M.promotionalText, supportUrl: M.supportUrl };  // whatsNew は初回バージョンでは編集不可
 if (vloc) {
   await api('PATCH', `/appStoreVersionLocalizations/${vloc.id}`, { data: { type: 'appStoreVersionLocalizations', id: vloc.id, attributes: vattrs } });
 } else {
@@ -44,8 +44,16 @@ if (iloc) {
 }
 await api('PATCH', `/appInfos/${info.id}`, { data: { type: 'appInfos', id: info.id, relationships: { primaryCategory: { data: { type: 'appCategories', id: M.primaryCategory } } } } });
 const age = await api('GET', `/appInfos/${info.id}/ageRatingDeclaration`);
-const none = Object.fromEntries(['alcoholTobaccoOrDrugUseOrReferences', 'contests', 'gamblingSimulated', 'horrorOrFearThemes', 'matureOrSuggestiveThemes', 'medicalOrTreatmentInformation', 'profanityOrCrudeHumor', 'sexualContentGraphicAndNudity', 'sexualContentOrNudity', 'violenceCartoonOrFantasy', 'violenceRealistic', 'violenceRealisticProlongedGraphicOrSadistic'].map((k) => [k, 'NONE']));
-await api('PATCH', `/ageRatingDeclarations/${age.data.id}`, { data: { type: 'ageRatingDeclarations', id: age.data.id, attributes: { ...none, gambling: false, unrestrictedWebAccess: false, kidsAgeBand: null } } });
+// 年齢制限アンケート: 取得した属性をすべて「なし」に（真偽値は false、列挙は NONE、kidsAgeBand は null）
+const BOOL = new Set(['gambling', 'unrestrictedWebAccess', 'userGeneratedContent', 'parentalControls', 'advertising', 'messagingAndChat', 'lootBox', 'ageAssurance', 'healthOrWellnessTopics', 'socialMedia', 'socialMediaAgeRestricted']);
+const ENUM = new Set(['alcoholTobaccoOrDrugUseOrReferences', 'contests', 'gamblingSimulated', 'gunsOrOtherWeapons', 'horrorOrFearThemes', 'matureOrSuggestiveThemes', 'medicalOrTreatmentInformation', 'profanityOrCrudeHumor', 'sexualContentGraphicAndNudity', 'sexualContentOrNudity', 'violenceCartoonOrFantasy', 'violenceRealistic', 'violenceRealisticProlongedGraphicOrSadistic', 'ageRatingOverride', 'koreaAgeRatingOverride']);
+const ageAttrs = { kidsAgeBand: null };
+for (const k of Object.keys(age.data.attributes)) {
+  if (BOOL.has(k)) ageAttrs[k] = false;
+  else if (ENUM.has(k)) ageAttrs[k] = 'NONE';
+}
+console.log('age rating attrs:', JSON.stringify(ageAttrs));
+await api('PATCH', `/ageRatingDeclarations/${age.data.id}`, { data: { type: 'ageRatingDeclarations', id: age.data.id, attributes: ageAttrs } });
 console.log('app info / category / age rating ok');
 
 // 4) 審査情報
