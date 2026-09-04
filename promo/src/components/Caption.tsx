@@ -57,7 +57,7 @@ export const Caption: React.FC<{ text: string; sub?: string; top?: number; width
             padding: `${Math.round(size * 0.22)}px ${Math.round(size * 0.55)}px ${Math.round(size * 0.26)}px`,
             fontFamily: FONT.sans,
             fontWeight: 700,
-            fontSize: Math.round(size * 0.62),
+            fontSize: Math.round(size * 0.72),
             whiteSpace: 'nowrap',
             boxShadow: '0 8px 30px rgba(0,0,0,0.14)',
           }}

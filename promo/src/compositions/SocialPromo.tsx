@@ -29,7 +29,7 @@ export const SocialPromo: React.FC<SocialProps> = ({ take, audio }) => {
           <div style={{ position: 'absolute', left: Math.round((W - phoneW) / 2), top: Math.round((H - phoneH) / 2) - 40, boxShadow: '0 30px 80px rgba(0,0,0,0.22)', borderRadius: 64 }}>
             <PhoneClip take={take} seg={seg} width={phoneW} height={phoneH} radius={64} />
           </div>
-          {seg.caption ? <Caption text={seg.caption.text} sub={seg.caption.sub} top={0.84} width={W} height={H} size={54} /> : null}
+          {seg.caption ? <Caption text={seg.caption.text} sub={seg.caption.sub} top={0.83} width={W} height={H} size={60} /> : null}
           {audio
             ? (seg.sfx ?? []).map((s, i) => (
                 <Sequence key={i} from={Math.round(s.at * FPS)}>
