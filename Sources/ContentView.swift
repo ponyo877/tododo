@@ -10,20 +10,41 @@ struct ContentView: View {
     @State private var observing = false  // ✨後の手直しをお手本として観測中
     @State private var corrected = false
     @State private var editingID: UUID?   // 入力欄で文字を編集中のタスク
+    @State private var editingSetID: UUID? // 入力欄で定義を編集中のセット
+    @State private var addingSet = false   // 入力欄が「セット定義」モード
 
     var body: some View {
         List {
             ForEach(store.rows) { row in
                 switch row {
                 case .header(let bucket):
-                    header(for: bucket)
-                        .background(RowTuner(isHeader: true))
-                        .listRowInsets(EdgeInsets(top: 16, leading: 20, bottom: 8, trailing: 20))
-                        .listRowSeparator(.hidden)
+                    header(label: bucket.label, id: bucket.rawValue) {
+                        target = bucket
+                        addingSet = false
+                        adding = true
+                    }
+                    .background(RowTuner(isHeader: true))
+                    .listRowInsets(EdgeInsets(top: 16, leading: 20, bottom: 8, trailing: 20))
+                    .listRowSeparator(.hidden)
+                case .setsHeader:
+                    header(label: "セット", id: "sets") {
+                        addingSet = true
+                        adding = true
+                    }
+                    .background(RowTuner(isHeader: true))
+                    .listRowInsets(EdgeInsets(top: 16, leading: 20, bottom: 8, trailing: 20))
+                    .listRowSeparator(.hidden)
                 case .todo(let todo):
                     TodoRow(store: store, todo: todo, isEditing: editingID == todo.id) {
                         editingID = todo.id
                         input = todo.text
+                        adding = true
+                    }
+                    .background(RowTuner(isHeader: false))
+                case .set(let set):
+                    SetRow(store: store, set: set, isEditing: editingSetID == set.id) {
+                        editingSetID = set.id
+                        input = set.definition
                         adding = true
                     }
                     .background(RowTuner(isHeader: false))
@@ -65,21 +86,23 @@ struct ContentView: View {
         .onChange(of: adding) { _, focused in
             if !focused {
                 target = .today
-                if editingID != nil {  // 確定せずに閉じたら編集キャンセル
+                addingSet = false
+                if editingID != nil || editingSetID != nil {  // 確定せずに閉じたら編集キャンセル
                     editingID = nil
+                    editingSetID = nil
                     input = ""
                 }
             }
         }
     }
 
-    private func header(for bucket: Bucket) -> some View {
+    private func header(label: String, id: String, onAdd: @escaping () -> Void) -> some View {
         HStack {
-            Text(bucket.label)
+            Text(label)
                 .font(.title2.bold())
                 .foregroundStyle(Color(.label))
             Spacer()
-            if bucket == .today && canSort && pendingToday.count >= 2 {
+            if id == Bucket.today.rawValue && canSort && pendingToday.count >= 2 {
                 if sorting {
                     ProgressView()
                 } else {
@@ -92,16 +115,13 @@ struct ContentView: View {
                     .accessibilityIdentifier("sort")
                 }
             }
-            Button {
-                target = bucket
-                adding = true
-            } label: {
+            Button(action: onAdd) {
                 Image(systemName: "plus")
                     .font(.title3)
                     .foregroundStyle(Color(.systemGray2))
             }
             .buttonStyle(.plain)
-            .accessibilityIdentifier("add.\(bucket.rawValue)")
+            .accessibilityIdentifier("add.\(id)")
         }
     }
 
@@ -138,7 +158,7 @@ struct ContentView: View {
             InputField(
                 text: $input,
                 isFocused: $adding,
-                placeholder: target == .today ? "やること..." : "\(target.label)に追加...",
+                placeholder: addingSet || editingSetID != nil ? "セット名: 項目, 項目, …" : target == .today ? "やること..." : "\(target.label)に追加...",
                 onSubmit: submit
             )
             .padding(.horizontal, 16)
@@ -152,17 +172,94 @@ struct ContentView: View {
 
     private func submit() {
         let text = input.trimmingCharacters(in: .whitespaces)
-        if let id = editingID {
+        if let id = editingSetID {
+            if !text.isEmpty {
+                let parsed = TaskSet.parse(text)
+                store.updateSet(id, name: parsed.name, items: parsed.items)
+            }
+            editingSetID = nil
+            input = ""
+            adding = false
+        } else if let id = editingID {
             if !text.isEmpty { store.rename(id, to: text) }
             editingID = nil
             input = ""
             adding = false
         } else if text.isEmpty {
             adding = false
+        } else if addingSet {
+            let parsed = TaskSet.parse(text)
+            withAnimation { store.addSet(name: parsed.name, items: parsed.items) }
+            input = ""
         } else {
             withAnimation { store.add(text, to: target) }
             input = ""  // フォーカスは外れないのでそのまま連続入力できる
         }
+    }
+}
+
+// セット行。右スワイプで今日へ一括投入、左スワイプで削除、文字タップで定義を編集
+struct SetRow: View {
+    let store: Store
+    let set: TaskSet
+    let isEditing: Bool
+    let onEdit: () -> Void
+    @State private var dragX: CGFloat = 0
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "square.stack")
+                .font(.title3)
+                .foregroundStyle(Color(.systemGray2))
+
+            HStack(spacing: 10) {
+                Text(set.name)
+                    .fontWeight(.medium)
+                    .foregroundStyle(isEditing ? Color(.systemGray2) : .primary)
+                Text(set.items.joined(separator: "・"))
+                    .foregroundStyle(Color(.systemGray))
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .onTapGesture(perform: onEdit)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {}
+        .offset(x: dragX)
+        .background(alignment: .leading) {
+            Image(systemName: "plus")
+                .foregroundStyle(Color(.systemGray2))
+                .opacity(reveal(dragX))
+        }
+        .background(alignment: .trailing) {
+            Image(systemName: "xmark")
+                .foregroundStyle(Color(.systemGray2))
+                .opacity(reveal(-dragX))
+        }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 15)
+                .onChanged { value in
+                    let t = value.translation
+                    guard abs(t.width) > abs(t.height) else { return }
+                    dragX = max(-80, min(t.width, 80))
+                }
+                .onEnded { _ in
+                    if dragX > 50 {
+                        withAnimation { store.inject(set, into: .today) }
+                    } else if dragX < -50 {
+                        withAnimation { store.deleteSet(set.id) }
+                    }
+                    withAnimation(.easeOut(duration: 0.15)) { dragX = 0 }
+                }
+        )
+        .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
+        .listRowSeparator(.hidden)
+    }
+
+    // スワイプ量 50pt で背景アイコンが完全に現れる
+    private func reveal(_ x: CGFloat) -> Double {
+        Double(min(max(x, 0), 50) / 50)
     }
 }
 
