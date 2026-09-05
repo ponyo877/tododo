@@ -42,13 +42,19 @@ struct ContentView: View {
         .scrollDismissesKeyboard(.immediately)
         .overlay {
             if store.todos.isEmpty {  // 空のときだけ、線画のドードーが静かに待っている（テンプレート描画でダークモードは白線）
-                Image("DodoOutline")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 260)
-                    .foregroundStyle(.primary)
-                    .opacity(0.25)
-                    .allowsHitTesting(false)
+                VStack(spacing: 0) {
+                    Color.clear.frame(height: 200)  // 見出し3行ぶんは避け、その下の余白の中央に置く
+                    Spacer(minLength: 0)
+                    Image("DodoOutline")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: 260, maxHeight: 260)
+                        .foregroundStyle(.primary)
+                        .opacity(0.25)
+                        .padding(.vertical, 16)
+                    Spacer(minLength: 0)
+                }
+                .allowsHitTesting(false)
             }
         }
         .safeAreaInset(edge: .bottom) { addBar }
